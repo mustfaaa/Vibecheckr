@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeCheckr • your SOL bag is about to get cooked</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+    body { font-family: 'Press Start 2P', sans-serif; }
+  </style>
+</head>
+<body class="bg-black text-white min-h-screen flex items-center justify-center p-4">
+  <div class="max-w-xl w-full">
+    <h1 class="text-5xl font-bold text-center mb-2 bg-gradient-to-r from-cyan-400 to-purple-500 bg-clip-text text-transparent">
+      VibeCheckr
+    </h1>
+    <p class="text-center text-xl mb-8">paste wallet → get ROASTED so hard your ancestors feel it → back $VIBECODE or stay broke forever</p>
+
+    <div class="bg-zinc-900 rounded-3xl p-8">
+      <input id="walletInput" 
+             type="text" 
+             placeholder="Paste your dusty Solana wallet here... (rich guy optional, we judge everyone)" 
+             class="w-full bg-zinc-800 text-white px-6 py-4 rounded-2xl text-lg font-mono focus:outline-none mb-6">
+
+      <button onclick="checkVibe()" 
+              class="w-full bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-2xl py-5 rounded-2xl transition-all active:scale-95">
+        COOK MY BAG 🔥 (no mercy mode)
+      </button>
+
+      <div id="result" class="hidden mt-8 text-center"></div>
+    </div>
+
+    <p class="text-center text-xs text-zinc-500 mt-8">
+      vibe-coded in one sitting by a 14-dollar dev who’s still eating ramen • github.com/mustfaaa/metal • $VIBECODE on pump.fun
+    </p>
+  </div>
+
+  <script>
+    async function checkVibe() {
+      const address = document.getElementById('walletInput').value.trim();
+      if (!address) return alert("Bro... you really came here with nothing? Paste a wallet or keep coping");
+
+      const resultDiv = document.getElementById('result');
+      resultDiv.classList.remove('hidden');
+      resultDiv.innerHTML = `<p class="text-cyan-400">Digging through the graveyard of your transactions...</p>`;
+
+      const RPC = "https://api.mainnet-beta.solana.com";
+
+      // Get balance
+      let balanceRes = await fetch(RPC, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getBalance",
+          params: [address]
+        })
+      });
+      let balanceData = await balanceRes.json();
+      const balance = (balanceData.result.value / 1000000000).toFixed(4);
+
+      // Get last 3 tx
+      let txRes = await fetch(RPC, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "getSignaturesForAddress",
+          params: [address, { limit: 3 }]
+        })
+      });
+      let txData = await txRes.json();
+      const lastTx = txData.result ? txData.result.map(t => t.signature.slice(0,8) + "...") : ["no moves, just vibes 💀"];
+
+      // Vibe score (still rigged for maximum pain)
+      let score = Math.floor(Math.random() * 30) + 40;
+      if (parseFloat(balance) > 10) score += 35;
+      else if (parseFloat(balance) > 1) score += 20;
+      else if (parseFloat(balance) < 0.1) score = 13;
+
+      // MAX ROAST MODE — even spicier than last time
+      const roasts = [
+        "Broke boy summer 😭 your SOL is in witness protection and still hiding",
+        "This bag so empty it just asked ME for a loan",
+        "VIBE GOD? Nah bro, this is VIBE HOMELESS 💀 go touch grass... with no shoes",
+        "Your portfolio just filed for bankruptcy and tagged you in the post",
+        "So mid it needs a 12-step program, a therapist, AND a new wallet",
+        "Phantom wallet? More like Phantom gains... they all ran away",
+        "This bag drier than the Sahara during the 2022 Solana bear market",
+        "Congrats, you're the final boss of rugpull victims",
+        "Balance so low even your last tx sent a condolences emoji",
+        "Your wallet ghosted you harder than your ex and the bull run",
+        "0.00069 SOL energy — you're not early, you're just broke",
+        "This is the crypto version of showing up to the club with no money"
+      ];
+      const roast = roasts[Math.floor(Math.random() * roasts.length)];
+
+      // Build the result (extra savage UI)
+      let html = `
+        <div class="bg-zinc-800 rounded-3xl p-6">
+          <p class="text-2xl">Balance: <span class="font-mono text-cyan-400">${balance} SOL</span></p>
+          <p class="text-7xl font-bold my-4 text-yellow-400">${score}</p>
+          <p class="text-2xl italic mb-6">${roast}</p>
+          <p class="text-sm mb-6 text-zinc-400">last moves: ${lastTx.join(" • ")}</p>
+          
+          <canvas id="memeCanvas" width="600" height="400" class="mx-auto border-4 border-yellow-400 rounded-2xl mb-6"></canvas>
+          
+          <button onclick="generateMeme('${address}', ${score}, '${roast}', '${lastTx.join(" • ")}')" 
+                  class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
+            DOWNLOAD THIS ROAST &amp; POST IT ON X (let the timeline cook you)
+          </button>
+        </div>
+      `;
+      resultDiv.innerHTML = html;
+    }
+
+    function generateMeme(address, score, roast, lastTx) {
+      const canvas = document.getElementById('memeCanvas');
+      const ctx = canvas.getContext('2d');
+      
+      // background gradient (still fire)
+      const grad = ctx.createLinearGradient(0,0,600,400);
+      grad.addColorStop(0, '#0ea5e9');
+      grad.addColorStop(1, '#7c3aed');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,600,400);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`VIBE SCORE: ${score}`, 300, 110);
+      
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText(roast, 300, 180);
+      
+      ctx.font = '24px monospace';
+      ctx.fillText(address.slice(0,12) + '...' + address.slice(-8), 300, 250);
+      
+      ctx.font = '18px sans-serif';
+      ctx.fillText('last moves: ' + lastTx, 300, 300);
+      
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('$VIBECODE', 300, 355);
+      ctx.fillText('github.com/mustfaaa/metal', 300, 385);
+      
+      // download
+      const link = document.createElement('a');
+      link.download = 'my-vibecheckr-roast.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+  </script>
+</body>
+</html>
