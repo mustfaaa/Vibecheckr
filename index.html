@@ -37,7 +37,34 @@
   </div>
 
   <script>
-    // Make sure functions are ready before buttons
+    function drawMeme(canvas, address, score, roast, lastTx) {
+      const ctx = canvas.getContext('2d');
+      const grad = ctx.createLinearGradient(0,0,600,400);
+      grad.addColorStop(0, '#0ea5e9');
+      grad.addColorStop(1, '#7c3aed');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,600,400);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`VIBE SCORE: ${score}`, 300, 110);
+      
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText(roast, 300, 180);
+      
+      ctx.font = '24px monospace';
+      ctx.fillText(address.slice(0,12) + '...' + address.slice(-8), 300, 250);
+      
+      ctx.font = '18px sans-serif';
+      ctx.fillText('last moves: ' + lastTx, 300, 300);
+      
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('$VIBECODE', 300, 355);
+      ctx.fillText('github.com/mustfaaa/Vibecheckr', 300, 385);
+    }
+
     function checkVibe() {
       const address = document.getElementById('walletInput').value.trim();
       if (!address) return alert("Bro... paste a wallet first or keep coping");
@@ -90,27 +117,44 @@
           ];
           const roast = roasts[Math.floor(Math.random() * roasts.length)];
 
+          // Build result with auto-drawn meme
           let html = `
             <div class="bg-zinc-800 rounded-3xl p-6">
               <p class="text-2xl">Balance: <span class="font-mono text-cyan-400">${balance} SOL</span></p>
-              <p class="text-7xl font-bold my-4 text-yellow-400">${score}</p>
+              <p class="text-7xl font-bold my-4 text-yellow-400">${score} 🔥</p>
               <p class="text-2xl italic mb-6">${roast}</p>
               <p class="text-sm mb-6 text-zinc-400">last moves: ${lastTx.join(" • ")}</p>
               
               <canvas id="memeCanvas" width="600" height="400" class="mx-auto border-4 border-yellow-400 rounded-2xl mb-6"></canvas>
               
-              <button onclick="generateMeme('${address}', ${score}, '${roast}', '${lastTx.join(" • ")}')" 
-                      class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full mb-3">
+              <button id="downloadBtn" class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full mb-3">
                 DOWNLOAD THIS ROAST
               </button>
 
-              <button onclick="shareOnX('${address}', ${score}, '${roast}')" 
-                      class="bg-blue-400 hover:bg-blue-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
+              <button id="shareBtn" class="bg-blue-400 hover:bg-blue-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
                 SHARE THIS ROAST ON X 🔥
               </button>
             </div>
           `;
           resultDiv.innerHTML = html;
+
+          // Auto-draw the meme
+          const canvas = document.getElementById('memeCanvas');
+          drawMeme(canvas, address, score, roast, lastTx.join(" • "));
+
+          // Attach buttons
+          document.getElementById('downloadBtn').addEventListener('click', () => {
+            const link = document.createElement('a');
+            link.download = 'my-vibecheckr-roast.png';
+            link.href = canvas.toDataURL();
+            link.click();
+          });
+
+          document.getElementById('shareBtn').addEventListener('click', () => {
+            const shortWallet = address.slice(0,12) + '...' + address.slice(-8);
+            const tweetText = `just got ABSOLUTELY COOKED by VibeCheckr 😂%0A%0AVibe score: ${score}/100%0A${roast}%0A%0AMy wallet: ${shortWallet}%0A%0ACheck yours and get roasted too 👀%0Ahttps://mustfaaa.github.io/Vibecheckr%0A%0ABack $VIBECODE on pump.fun 🔥%0Agithub.com/mustfaaa/Vibecheckr`;
+            window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+          });
         });
       })
       .catch(() => {
@@ -119,47 +163,7 @@
       });
     }
 
-    function generateMeme(address, score, roast, lastTx) {
-      const canvas = document.getElementById('memeCanvas');
-      const ctx = canvas.getContext('2d');
-      const grad = ctx.createLinearGradient(0,0,600,400);
-      grad.addColorStop(0, '#0ea5e9');
-      grad.addColorStop(1, '#7c3aed');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,600,400);
-      
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`VIBE SCORE: ${score}`, 300, 110);
-      
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(roast, 300, 180);
-      
-      ctx.font = '24px monospace';
-      ctx.fillText(address.slice(0,12) + '...' + address.slice(-8), 300, 250);
-      
-      ctx.font = '18px sans-serif';
-      ctx.fillText('last moves: ' + lastTx, 300, 300);
-      
-      ctx.fillStyle = '#facc15';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.fillText('$VIBECODE', 300, 355);
-      ctx.fillText('github.com/mustfaaa/Vibecheckr', 300, 385);
-      
-      const link = document.createElement('a');
-      link.download = 'my-vibecheckr-roast.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-
-    function shareOnX(address, score, roast) {
-      const shortWallet = address.slice(0,12) + '...' + address.slice(-8);
-      const tweetText = `just got ABSOLUTELY COOKED by VibeCheckr 😂%0A%0AVibe score: ${score}/100%0A${roast}%0A%0AMy wallet: ${shortWallet}%0A%0ACheck yours and get roasted too 👀%0Ahttps://mustfaaa.github.io/Vibecheckr%0A%0ABack $VIBECODE on pump.fun 🔥%0Agithub.com/mustfaaa/Vibecheckr`;
-      window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
-    }
-
-    // Attach buttons AFTER script loads
+    // Attach cook button
     window.onload = function() {
       document.getElementById('cookButton').addEventListener('click', checkVibe);
     };
