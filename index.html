@@ -39,51 +39,42 @@
   <script>
     async function checkVibe() {
       const address = document.getElementById('walletInput').value.trim();
-      if (!address) return alert("Bro... you really came here with nothing? Paste a wallet or keep coping");
+      if (!address) return alert("Bro... paste a wallet first or keep coping");
 
       const resultDiv = document.getElementById('result');
       resultDiv.classList.remove('hidden');
       resultDiv.innerHTML = `<p class="text-cyan-400">Digging through the graveyard of your transactions...</p>`;
 
-      // Better RPC that actually works from GitHub Pages
       const RPC = "https://solana-rpc.publicnode.com";
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000);
 
       try {
-        // Get balance
         let balanceRes = await fetch(RPC, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "getBalance",
-            params: [address]
-          })
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getBalance", params: [address] }),
+          signal: controller.signal
         });
         let balanceData = await balanceRes.json();
         const balance = (balanceData.result.value / 1000000000).toFixed(4);
 
-        // Get last 3 tx
         let txRes = await fetch(RPC, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            jsonrpc: "2.0",
-            id: 1,
-            method: "getSignaturesForAddress",
-            params: [address, { limit: 3 }]
-          })
+          body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "getSignaturesForAddress", params: [address, { limit: 3 }] }),
+          signal: controller.signal
         });
         let txData = await txRes.json();
         const lastTx = txData.result ? txData.result.map(t => t.signature.slice(0,8) + "...") : ["no moves, just vibes 💀"];
 
-        // Vibe score
+        clearTimeout(timeoutId);
+
         let score = Math.floor(Math.random() * 30) + 40;
         if (parseFloat(balance) > 10) score += 35;
         else if (parseFloat(balance) > 1) score += 20;
         else if (parseFloat(balance) < 0.1) score = 13;
 
-        // MAX ROASTS
         const roasts = [
           "Broke boy summer 😭 your SOL is in witness protection and still hiding",
           "This bag so empty it just asked ME for a loan",
@@ -110,21 +101,25 @@
             <canvas id="memeCanvas" width="600" height="400" class="mx-auto border-4 border-yellow-400 rounded-2xl mb-6"></canvas>
             
             <button onclick="generateMeme('${address}', ${score}, '${roast}', '${lastTx.join(" • ")}')" 
-                    class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
-              DOWNLOAD THIS ROAST &amp; POST IT ON X (let the timeline cook you)
+                    class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full mb-3">
+              DOWNLOAD THIS ROAST
+            </button>
+
+            <button onclick="shareOnX('${address}', ${score}, '${roast}')" 
+                    class="bg-blue-400 hover:bg-blue-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
+              SHARE THIS ROAST ON X 🔥
             </button>
           </div>
         `;
         resultDiv.innerHTML = html;
 
       } catch (e) {
+        clearTimeout(timeoutId);
         resultDiv.innerHTML = `
           <div class="bg-red-900/50 text-red-400 p-6 rounded-3xl">
-            <p>❌ Could not connect to Solana right now.</p>
-            <p class="text-sm mt-2">Try again in 10 seconds or paste a different wallet. (RPC being moody)</p>
+            <p>❌ RPC timed out (free nodes get moody). Try again in 10 seconds or use another wallet.</p>
           </div>
         `;
-        console.error(e);
       }
     }
 
@@ -134,4 +129,41 @@
       
       const grad = ctx.createLinearGradient(0,0,600,400);
       grad.addColorStop(0, '#0ea5e9');
-      grad.add
+      grad.addColorStop(1, '#7c3aed');
+      ctx.fillStyle = grad;
+      ctx.fillRect(0,0,600,400);
+      
+      ctx.fillStyle = '#fff';
+      ctx.font = 'bold 48px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(`VIBE SCORE: ${score}`, 300, 110);
+      
+      ctx.font = 'bold 32px sans-serif';
+      ctx.fillText(roast, 300, 180);
+      
+      ctx.font = '24px monospace';
+      ctx.fillText(address.slice(0,12) + '...' + address.slice(-8), 300, 250);
+      
+      ctx.font = '18px sans-serif';
+      ctx.fillText('last moves: ' + lastTx, 300, 300);
+      
+      ctx.fillStyle = '#facc15';
+      ctx.font = 'bold 28px sans-serif';
+      ctx.fillText('$VIBECODE', 300, 355);
+      ctx.fillText('github.com/mustfaaa/Vibecheckr', 300, 385);
+      
+      const link = document.createElement('a');
+      link.download = 'my-vibecheckr-roast.png';
+      link.href = canvas.toDataURL();
+      link.click();
+    }
+
+    function shareOnX(address, score, roast) {
+      const shortWallet = address.slice(0,12) + '...' + address.slice(-8);
+      const tweetText = `just got ABSOLUTELY COOKED by VibeCheckr 😂%0A%0AVibe score: ${score}/100%0A${roast}%0A%0AMy wallet: ${shortWallet}%0A%0ACheck yours and get roasted too 👀%0Ahttps://mustfaaa.github.io/Vibecheckr%0A%0ABack $VIBECODE on pump.fun 🔥%0Agithub.com/mustfaaa/Vibecheckr`;
+      
+      window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
+    }
+  </script>
+</body>
+</html>
