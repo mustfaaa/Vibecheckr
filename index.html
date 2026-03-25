@@ -32,7 +32,7 @@
     </div>
 
     <p class="text-center text-xs text-zinc-500 mt-8">
-      vibe-coded in one sitting by a 14-dollar dev who’s still eating ramen • github.com/mustfaaa/vibecheckr • $VIBECODE on pump.fun
+      vibe-coded in one sitting by a 14-dollar dev who’s still eating ramen • github.com/mustfaaa/Vibecheckr • $VIBECODE on pump.fun
     </p>
   </div>
 
@@ -45,114 +45,93 @@
       resultDiv.classList.remove('hidden');
       resultDiv.innerHTML = `<p class="text-cyan-400">Digging through the graveyard of your transactions...</p>`;
 
-      const RPC = "https://api.mainnet-beta.solana.com";
+      // Better RPC that actually works from GitHub Pages
+      const RPC = "https://solana-rpc.publicnode.com";
 
-      // Get balance
-      let balanceRes = await fetch(RPC, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "getBalance",
-          params: [address]
-        })
-      });
-      let balanceData = await balanceRes.json();
-      const balance = (balanceData.result.value / 1000000000).toFixed(4);
+      try {
+        // Get balance
+        let balanceRes = await fetch(RPC, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getBalance",
+            params: [address]
+          })
+        });
+        let balanceData = await balanceRes.json();
+        const balance = (balanceData.result.value / 1000000000).toFixed(4);
 
-      // Get last 3 tx
-      let txRes = await fetch(RPC, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          jsonrpc: "2.0",
-          id: 1,
-          method: "getSignaturesForAddress",
-          params: [address, { limit: 3 }]
-        })
-      });
-      let txData = await txRes.json();
-      const lastTx = txData.result ? txData.result.map(t => t.signature.slice(0,8) + "...") : ["no moves, just vibes 💀"];
+        // Get last 3 tx
+        let txRes = await fetch(RPC, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            jsonrpc: "2.0",
+            id: 1,
+            method: "getSignaturesForAddress",
+            params: [address, { limit: 3 }]
+          })
+        });
+        let txData = await txRes.json();
+        const lastTx = txData.result ? txData.result.map(t => t.signature.slice(0,8) + "...") : ["no moves, just vibes 💀"];
 
-      // Vibe score (still rigged for maximum pain)
-      let score = Math.floor(Math.random() * 30) + 40;
-      if (parseFloat(balance) > 10) score += 35;
-      else if (parseFloat(balance) > 1) score += 20;
-      else if (parseFloat(balance) < 0.1) score = 13;
+        // Vibe score
+        let score = Math.floor(Math.random() * 30) + 40;
+        if (parseFloat(balance) > 10) score += 35;
+        else if (parseFloat(balance) > 1) score += 20;
+        else if (parseFloat(balance) < 0.1) score = 13;
 
-      // MAX ROAST MODE — even spicier than last time
-      const roasts = [
-        "Broke boy summer 😭 your SOL is in witness protection and still hiding",
-        "This bag so empty it just asked ME for a loan",
-        "VIBE GOD? Nah bro, this is VIBE HOMELESS 💀 go touch grass... with no shoes",
-        "Your portfolio just filed for bankruptcy and tagged you in the post",
-        "So mid it needs a 12-step program, a therapist, AND a new wallet",
-        "Phantom wallet? More like Phantom gains... they all ran away",
-        "This bag drier than the Sahara during the 2022 Solana bear market",
-        "Congrats, you're the final boss of rugpull victims",
-        "Balance so low even your last tx sent a condolences emoji",
-        "Your wallet ghosted you harder than your ex and the bull run",
-        "0.00069 SOL energy — you're not early, you're just broke",
-        "This is the crypto version of showing up to the club with no money"
-      ];
-      const roast = roasts[Math.floor(Math.random() * roasts.length)];
+        // MAX ROASTS
+        const roasts = [
+          "Broke boy summer 😭 your SOL is in witness protection and still hiding",
+          "This bag so empty it just asked ME for a loan",
+          "VIBE GOD? Nah bro, this is VIBE HOMELESS 💀 go touch grass... with no shoes",
+          "Your portfolio just filed for bankruptcy and tagged you in the post",
+          "So mid it needs a 12-step program, a therapist, AND a new wallet",
+          "Phantom wallet? More like Phantom gains... they all ran away",
+          "This bag drier than the Sahara during the 2022 Solana bear market",
+          "Congrats, you're the final boss of rugpull victims",
+          "Balance so low even your last tx sent a condolences emoji",
+          "Your wallet ghosted you harder than your ex and the bull run",
+          "0.00069 SOL energy — you're not early, you're just broke",
+          "This is the crypto version of showing up to the club with no money"
+        ];
+        const roast = roasts[Math.floor(Math.random() * roasts.length)];
 
-      // Build the result (extra savage UI)
-      let html = `
-        <div class="bg-zinc-800 rounded-3xl p-6">
-          <p class="text-2xl">Balance: <span class="font-mono text-cyan-400">${balance} SOL</span></p>
-          <p class="text-7xl font-bold my-4 text-yellow-400">${score}</p>
-          <p class="text-2xl italic mb-6">${roast}</p>
-          <p class="text-sm mb-6 text-zinc-400">last moves: ${lastTx.join(" • ")}</p>
-          
-          <canvas id="memeCanvas" width="600" height="400" class="mx-auto border-4 border-yellow-400 rounded-2xl mb-6"></canvas>
-          
-          <button onclick="generateMeme('${address}', ${score}, '${roast}', '${lastTx.join(" • ")}')" 
-                  class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
-            DOWNLOAD THIS ROAST &amp; POST IT ON X (let the timeline cook you)
-          </button>
-        </div>
-      `;
-      resultDiv.innerHTML = html;
+        let html = `
+          <div class="bg-zinc-800 rounded-3xl p-6">
+            <p class="text-2xl">Balance: <span class="font-mono text-cyan-400">${balance} SOL</span></p>
+            <p class="text-7xl font-bold my-4 text-yellow-400">${score}</p>
+            <p class="text-2xl italic mb-6">${roast}</p>
+            <p class="text-sm mb-6 text-zinc-400">last moves: ${lastTx.join(" • ")}</p>
+            
+            <canvas id="memeCanvas" width="600" height="400" class="mx-auto border-4 border-yellow-400 rounded-2xl mb-6"></canvas>
+            
+            <button onclick="generateMeme('${address}', ${score}, '${roast}', '${lastTx.join(" • ")}')" 
+                    class="bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xl px-10 py-4 rounded-2xl w-full">
+              DOWNLOAD THIS ROAST &amp; POST IT ON X (let the timeline cook you)
+            </button>
+          </div>
+        `;
+        resultDiv.innerHTML = html;
+
+      } catch (e) {
+        resultDiv.innerHTML = `
+          <div class="bg-red-900/50 text-red-400 p-6 rounded-3xl">
+            <p>❌ Could not connect to Solana right now.</p>
+            <p class="text-sm mt-2">Try again in 10 seconds or paste a different wallet. (RPC being moody)</p>
+          </div>
+        `;
+        console.error(e);
+      }
     }
 
     function generateMeme(address, score, roast, lastTx) {
       const canvas = document.getElementById('memeCanvas');
       const ctx = canvas.getContext('2d');
       
-      // background gradient (still fire)
       const grad = ctx.createLinearGradient(0,0,600,400);
       grad.addColorStop(0, '#0ea5e9');
-      grad.addColorStop(1, '#7c3aed');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0,0,600,400);
-      
-      ctx.fillStyle = '#fff';
-      ctx.font = 'bold 48px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(`VIBE SCORE: ${score}`, 300, 110);
-      
-      ctx.font = 'bold 32px sans-serif';
-      ctx.fillText(roast, 300, 180);
-      
-      ctx.font = '24px monospace';
-      ctx.fillText(address.slice(0,12) + '...' + address.slice(-8), 300, 250);
-      
-      ctx.font = '18px sans-serif';
-      ctx.fillText('last moves: ' + lastTx, 300, 300);
-      
-      ctx.fillStyle = '#facc15';
-      ctx.font = 'bold 28px sans-serif';
-      ctx.fillText('$VIBECODE', 300, 355);
-      ctx.fillText('github.com/mustfaaa/vibecheckr', 300, 385);
-      
-      // download
-      const link = document.createElement('a');
-      link.download = 'my-vibecheckr-roast.png';
-      link.href = canvas.toDataURL();
-      link.click();
-    }
-  </script>
-</body>
-</html>
+      grad.add
